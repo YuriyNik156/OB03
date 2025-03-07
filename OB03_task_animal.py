@@ -1,3 +1,7 @@
+# Импортирование модулей pickle для сохранения и загрузки объектов и os для удаления поврежденных (старых) файлов
+import pickle
+import os
+
 # 1. Создайте базовый класс `Animal`, который будет содержать общие атрибуты (например, `name`, `age`) и методы
 # (`make_sound()`, `eat()`) для всех животных.
 
@@ -7,6 +11,9 @@ class Animal():
         self.name = name
         self.age = age
         self.sex = sex
+
+    def make_sound(self):
+        print(f"{self.name} издает звук.")
 
 # 2. Реализуйте наследование, создав подклассы `Bird`, `Mammal`, и `Reptile`, которые наследуют от класса `Animal`.
 # Добавьте специфические атрибуты и переопределите методы, если требуется (например, различный звук для `make_sound()`).
@@ -53,7 +60,7 @@ animals = [Mammal("белый медведь", 10, "девочка"),
 # Создание функции animal_sound(animals) для демонстрации полиморфизма
 def animal_sound(animals):
     for animal in animals:
-        animal.animal_sound()
+        animal.make_sound()
 
 for animal in animals:
     animal.make_sound()
@@ -66,6 +73,31 @@ class Zoo():
     def __init__(self, animals = None, zooworkers = None):
         self.animals = animals if animals is not None else []
         self.zooworkers = zooworkers if zooworkers is not None else []
+
+# Попробуйте добавить дополнительные функции в вашу программу, такие как сохранение информации о зоопарке в файл и
+# возможность её загрузки, чтобы у вашего зоопарка было "постоянное состояние" между запусками программы.
+
+    # Удаление старого файла zoo_data.pkl для корректного сохранения и загрузки
+    if os.path.exists("zoo_data.pkl"):
+        os.remove("zoo_data.pkl")
+
+    # Функция сохранения данных в файл zoo_data.pkl
+    def save_to_file(self, filename = "zoo_data.pkl"):
+        with open(filename, "wb") as file:
+            pickle.dump(self, file)
+        print(f"Данные зоопарка сохранены в {filename}")
+
+    # Загрузка данных из файла zoo_data.pkl
+    @staticmethod
+    def load_from_file(filename="zoo_data.pkl"):
+        try:
+            with open(filename, "rb") as file:
+                zoo = pickle.load(file)
+            print(f"Данные зоопарка загружены из {filename}")
+            return zoo
+        except FileNotFoundError:
+            print(f"Файл {filename} не найден, создается новый зоопарк.")
+            return Zoo()
 
     # Вывод информации о животных и сотрудниках
     def get_animal_info(self):
@@ -91,8 +123,10 @@ class Zoo():
         self.zooworkers.append(new_zooworker)
         print(f"Сотрудник {new_zooworker} успешно добавлен. ")
 
-# Создание объекта zoo и добавление новых животных
-zoo = Zoo()
+# Создание объекта zoo и загрузка зоопарка из файла
+zoo = Zoo.load_from_file()
+
+# Добавление новых животных
 zoo.add_new_animal(Mammal("Тигр", 6, "мальчик"))
 zoo.add_new_animal(Bird("Попугай", 2, "девочка"))
 
@@ -129,3 +163,6 @@ class Zookeeper(ZooWorker):
 zoo.add_new_zooworker(Veterinarian(1, "Дмитрий"))
 zoo.add_new_zooworker(Zoologist(2, "Анна"))
 zoo.add_new_zooworker(Zookeeper(3, "Кирилл"))
+
+# Сохранение зоопарка в файл
+zoo.save_to_file()
